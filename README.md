@@ -48,7 +48,7 @@ python -m ipykernel install --prefix=/home/ma-user/.local --name=py310 --display
 
 ```
 
-├── Assistant_vllm_ms.ipynb #vllm_mindspore推理框架运行问答助手
+├── travalAssistant.ipynb #智能旅游助手问答效果测试与运行
 ├── Data_preporcess #数据预处理部分
 │   ├── data_converter.py
 │   ├── knowledge_extract.py
@@ -58,7 +58,6 @@ python -m ipykernel install --prefix=/home/ma-user/.local --name=py310 --display
 ├── Trip-1300.zip #微调后模型权重文件
 ├── knowledge_base.json #知识库文件
 ├── lora_training_data.json #用于lora微调的问答数据集文件
-├── main.ipynb #mindspore用法介绍
-└── travalAssistant.ipynb
+└── Assistant_vllm_ms.ipynb #vllm_mindspore推理框架运行问答助手
 ```
 
