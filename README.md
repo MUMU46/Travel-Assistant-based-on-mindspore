@@ -1,6 +1,3 @@
----
-license: unknown
----
 
 #### 项目配置
 
