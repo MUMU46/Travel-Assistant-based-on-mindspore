@@ -1,0 +1,4 @@
+# Core dependencies for Travel Assistant (MindSpore + LoRA + RAG)
+mindspore==2.7.1
+mindnlp==0.5.1
+transformers==4.55.4

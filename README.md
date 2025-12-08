@@ -1,60 +1,63 @@
+# Travel Assistant based on MindSpore
 
-#### 项目配置
+项目实现了基于 MindSpore 的 LoRA（低秩适配）语言风格微调，并结合 RAG（检索增强生成）构建一个面向旅游场景的对话助手。
 
-#### 输入以下命令安装MindSpore NLP：
+**项目特色**
 
-```python
-git clone https://github.com/mindspore-lab/mindnlp.git
+- **模型微调**: 使用 LoRA 方法对大模型进行高效微调，降低训练成本。
+- **RAG 对话**: 将检索模块与生成模块结合，用知识库增强对话的事实性和专业性。
+- **MindSpore 生态**: 基于 `mindspore` 与 `mindnlp`。
 
-cd mindnlp
+**仓库示例结构**
 
-bash scripts/build_and_reinstall.sh
-```
+- `train_qwen.py`：LoRA 微调脚本。
+- `main2.py` / `graph_rag.py`：RAG 相关逻辑与对话主流程示例。
+- `data_preporcess/`：数据预处理脚本与训练数据示例。
+- `qwen2.5-7b_lora_output/`：示例的 LoRA 输出（adapter 权重、配置等）。
+- `knowledge_graph_cache.pkl`: graph_rag.py生成的知识图谱缓存文件。
 
-#### 安装依赖和vllm-mindspore
+**环境与依赖**
 
-```
-git clone https://gitee.com/mindspore/vllm-mindspore.git
-cd vllm-mindspore
-git checkout master
-git checkout 54d0598645abddd7b5cfd7ed9c6162d23c6752ad
-```
+- 推荐使用虚拟环境（`venv` / `conda`）。
+- 本项目的 Python 依赖列于 `requirements.txt`。注意：`mindspore` 在不同平台和硬件（CPU/GPU/Ascend）下安装方式不同，如需加速请参考 MindSpore 官方安装说明。
 
-#### 安装依赖
-
-```
-pip install numba setuptools_scm tokenizers==0.21.1
-```
-
-#### 用shell脚本安装vllm-mindspore
+典型安装（bash / WSL / Git Bash）:
 
 ```
-cd vllm-mindspore
-bash install_depend_pkgs.sh
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-#### 输入以下命令，配置jupyter notebook
-
-```python
-pip install ipykernel
-
-python -m ipykernel install --prefix=/home/ma-user/.local --name=py310 --display-name "Python 3.10"
-```
-
-#### 项目目录介绍
+Windows (PowerShell) 激活虚拟环境:
 
 ```
-
-├── travalAssistant.ipynb #智能旅游助手问答效果测试与运行
-├── Data_preporcess #数据预处理部分
-│   ├── data_converter.py
-│   ├── knowledge_extract.py
-│   └── train.json #原数据集
-├── README.md
-├── TravelLoRA.ipynb #lora微调代码
-├── Trip-1300.zip #微调后模型权重文件
-├── knowledge_base.json #知识库文件
-├── lora_training_data.json #用于lora微调的问答数据集文件
-└── Assistant_vllm_ms.ipynb #vllm_mindspore推理框架运行问答助手
+.venv\Scripts\Activate.ps1
 ```
 
+如果需要特定平台的 MindSpore wheel，请参考 MindSpore 官方文档并使用对应的安装命令。
+
+**快速开始**
+
+1. 数据准备：在 `data_preporcess/` 中放置或生成训练数据（示例文件 `train.json`、`train_data.jsonl`）。
+2. LoRA 微调：运行 `train_qwen.py`（或项目内对应的训练脚本），将 LoRA 适配器保存到 `qwen2.5-7b_lora_output/`。
+   - 示例：
+   ```
+   python train_qwen.py 
+   ```
+3. RAG 集成：运行`main.py` 启动检索 + 生成对话流程，加载 LoRA 适配器与检索索引。
+
+**LoRA + 推理（伪代码）**
+
+```
+# 加载基础模型 -> 注入 LoRA 权重 -> 用于生成
+from transformers import AutoModel
+# load model
+# load lora adapter from `qwen2.5-7b_lora_output/adapter_model.safetensors`
+```
+
+
+
+**注意事项**
+- MindSpore 与部分 PyPI 包版本在不同平台上兼容性不同，若遇到安装问题，请优先参考 MindSpore 官方安装页。
+- 若使用 GPU，请确保驱动与 CUDA/cuDNN 版本与 MindSpore 要求匹配。
