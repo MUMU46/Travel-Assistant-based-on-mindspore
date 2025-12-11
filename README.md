@@ -58,10 +58,11 @@ from transformers import AutoModel
 
 ##### 运行效果
 
-![image-20251202202708705](C:\Users\Lenovo\AppData\Roaming\Typora\typora-user-images\image-20251202202708705.png)
+##### ![image-20251202202708705](https://s2.loli.net/2025/12/11/OkGiYBWCl6jfXab.png)
 
-![image-20251202202748100](C:\Users\Lenovo\AppData\Roaming\Typora\typora-user-images\image-20251202202748100.png)
+![image-20251202202748100](https://s2.loli.net/2025/12/11/bTY3iCFZ5ApBNft.png)
 
 **注意事项**
 - MindSpore 与部分 PyPI 包版本在不同平台上兼容性不同，若遇到安装问题，请优先参考 MindSpore 官方安装页。
 - 若使用 GPU，请确保驱动与 CUDA/cuDNN 版本与 MindSpore 要求匹配。
+
