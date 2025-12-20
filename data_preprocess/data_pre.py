@@ -1,5 +1,6 @@
 import json
 import pandas as pd
+import argparse
 
 def format_attrs(attrs):
     """将结构化属性转换为自然语言背景知识"""
@@ -55,4 +56,9 @@ def process_data(input_file, output_file):
     print(f"✅ 数据处理完成！保存至 {output_file}，共 {len(df)} 条样本。")
 
 if __name__ == "__main__":
-    process_data("train.json", "train_data.jsonl")
+    parser = argparse.ArgumentParser(description="Process travel assistant data.")
+    parser.add_argument("--input_file", type=str, default="train.json", help="Input dataset filename (default: train.json)")
+    parser.add_argument("--output_file", type=str, default="train_data.jsonl", help="Output jsonl filename (default: train_data.jsonl)")
+    args = parser.parse_args()
+
+    process_data(args.input_file, args.output_file)

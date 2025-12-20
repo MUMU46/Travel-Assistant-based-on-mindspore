@@ -5,6 +5,8 @@ import networkx as nx
 import logging
 import pickle
 import os
+from build_relation_router import RelationRouter as VectorRelationRouter
+
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -48,13 +50,19 @@ class RelationRouter:
 
     def route(self, query: str):
         ents = self.extract_entities(query)
-        rels = self.extract_relations(query)
+        # rels = self.extract_relations(query)
+        vector_results = self.vector_router.route(query, topk=1)
+        if vector_results:
+            rels = [vector_results[0]["relation"]]
+        else:
+            rels = []
 
         if not ents:
             return {"mode": "no_entity", "entities": [], "relations": rels}
 
         if not rels:
-            return {"mode": "entity_only", "entities": ents, "relations": []}
+            # return {"mode": "entity_only", "entities": ents, "relations": []}
+            rels = self.router.extract_relations(query)
 
         return {"mode": "entity_relation", "entities": ents, "relations": rels}
 
@@ -69,10 +77,11 @@ class KnowledgeGraphRAG:
         self.load_and_build_graph(knowledge_file_path)
 
         # 初始化 Router
-        self.router = RelationRouter(
-            entity_list=list(self.entity_index),
-            relation_keywords=RELATION_KEYWORDS
-        )
+        # self.router = RelationRouter(
+        #     entity_list=list(self.entity_index),
+        #     relation_keywords=RELATION_KEYWORDS
+        # )
+        self.vector_router = VectorRelationRouter()
 
     def load_and_build_graph(self, file_path):
         if os.path.exists(GRAPH_CACHE_FILE):
@@ -110,9 +119,8 @@ class KnowledgeGraphRAG:
 
         logger.info("图谱构建完成")
 
-    # =====================================================
-    # 核心：基于 Router 精准检索（替换掉你之前的 retrieve）
-    # =====================================================
+
+    # 基于 Router 精准检索
     def retrieve(self, query: str, max_facts=8):
         route = self.router.route(query)
 
@@ -120,15 +128,11 @@ class KnowledgeGraphRAG:
         entities = route["entities"]
         relations = route["relations"]
 
-        # --------------------------
         # 1) 无实体 → 不检索
-        # --------------------------
+
         if mode == "no_entity":
             return ""
-
-        # --------------------------
         # 2) 实体 + 关系（最优）
-        # --------------------------
         if mode == "entity_relation":
             results = []
             for e in entities:
@@ -138,9 +142,8 @@ class KnowledgeGraphRAG:
                         results.append(f"【{e}】的{r}是{nbr}")
             return "\n".join(f"【知识】: {x}。" for x in results[:max_facts])
 
-        # --------------------------
         # 3) 只有实体 → 返回常用属性
-        # --------------------------
+   
         if mode == "entity_only":
             results = []
             for e in entities:

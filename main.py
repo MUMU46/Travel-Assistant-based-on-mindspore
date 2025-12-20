@@ -3,9 +3,6 @@ import os
 os.environ["HF_HOME"] = "/cache/hf"
 os.environ["TRANSFORMERS_CACHE"] = "/cache/hf"
 os.environ["HF_HUB_CACHE"] = "/cache/hf"
-
-# 强制将 HuggingFace 的端点指向国内镜像站
-#os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 import argparse
 import json
 import mindspore as ms
@@ -13,7 +10,6 @@ import mindnlp
 from transformers import AutoTokenizer, AutoModelForCausalLM, TextIteratorStreamer
 from threading import Thread
 import time
-# 引入刚才写的 Graph RAG 类
 from graph_rag import KnowledgeGraphRAG
 
             
@@ -85,7 +81,7 @@ class GraphRAGServer:
         print("正在加载模型...")
         try:
             self.tokenizer = AutoTokenizer.from_pretrained(
-                'Qwen/Qwen2.5-7B-Instruct'  , 
+                model_path, 
                 use_fast=False, 
                 mirror='modelscope', 
                 trust_remote_code=True
@@ -94,8 +90,7 @@ class GraphRAGServer:
             # MindSpore 环境下加载模型
 
             self.model = AutoModelForCausalLM.from_pretrained(
-                'Qwen/Qwen2.5-7B-Instruct' , 
-                # 'Qwen/Qwen2.5-7B-Instruct' ,
+                model_path, 
                 ms_dtype=ms.bfloat16, # 或者 ms.bfloat16
                 mirror='modelscope', 
                 device_map=0,
@@ -120,13 +115,14 @@ class GraphRAGServer:
         """
     
         try:
-            need_rag = should_retrieve_llm(self.model, self.tokenizer, query, history)
+            need_rag = should_retrieve(self.model, self.tokenizer, query, history)
         except:
             need_rag = True
             
         system_prompt = (
                 "你是一名专业的北京旅游助手。\n"
                 "你的任务是根据提供的知识或常识回答用户问题。\n"
+                "不得编造事实。未在知识库中查询到答案时，礼貌地说明不知道。\n"
                 "禁止输出思考过程。"
             )
 
@@ -185,8 +181,7 @@ class GraphRAGServer:
                 return_dict=True
             )
 
-            # --- 🌟 关键修正：将所有输入张量移动到 NPU/Ascend 设备 ---
-            # 默认模型是在 NPU 上（device_map=0或Ascend上下文）
+
             if 'Ascend' in ms.context.get_context('device_target'):
                 # 遍历字典中的所有张量，并使用 .to('npu') 移动它们
                 input_ids = {k: v.to('npu') for k, v in input_ids_dict.items()}
@@ -221,11 +216,16 @@ class GraphRAGServer:
             return "抱歉，系统遇到了一些问题。"
 
 def main():
-    # 模拟参数，实际使用可替换为 argparse
-    # MODEL_PATH = 'Qwen/Qwen3-8B'
-    MODEL_PATH ='Qwen/Qwen2.5-7B-Instruct'
-    LORA_PATH = './qwen2.5-7B_lora_output/checkpoint-800' 
-    KNOWLEDGE_FILE = 'train.json' # 您的数据集
+    parser = argparse.ArgumentParser(description="Run Graph RAG Travel Assistant.")
+    parser.add_argument("--model_path", type=str, default="Qwen/Qwen2.5-7B-Instruct", help="Path to the pre-trained model")
+    parser.add_argument("--lora_path", type=str, default="./qwen2.5-7B_lora_output/checkpoint-800", help="Path to the LoRA checkpoint")
+    parser.add_argument("--knowledge_file", type=str, default="train.json", help="Path to the knowledge base file")
+    
+    args = parser.parse_args()
+
+    MODEL_PATH = args.model_path
+    LORA_PATH = args.lora_path
+    KNOWLEDGE_FILE = args.knowledge_file
     
     if not os.path.exists(KNOWLEDGE_FILE):
         print(f"错误：找不到知识库文件 {KNOWLEDGE_FILE}")

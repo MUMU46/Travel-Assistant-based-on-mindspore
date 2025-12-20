@@ -11,7 +11,7 @@
 **仓库示例结构**
 
 - `train_qwen.py`：LoRA 微调脚本。
-- `main2.py` / `graph_rag.py`：RAG 相关逻辑与对话主流程示例。
+- `main.py` / `graph_rag.py`：RAG 相关逻辑与对话主流程示例。
 - `data_preporcess/`：数据预处理脚本与训练数据示例。
 - `qwen2.5-7b_lora_output/`：示例的 LoRA 输出（adapter 权重、配置等）。
 - `knowledge_graph_cache.pkl`: graph_rag.py生成的知识图谱缓存文件。
@@ -64,5 +64,5 @@ from transformers import AutoModel
 
 **注意事项**
 - MindSpore 与部分 PyPI 包版本在不同平台上兼容性不同，若遇到安装问题，请优先参考 MindSpore 官方安装页。
-- 若使用 GPU，请确保驱动与 CUDA/cuDNN 版本与 MindSpore 要求匹配。
+
 

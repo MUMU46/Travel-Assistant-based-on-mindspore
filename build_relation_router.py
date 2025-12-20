@@ -17,7 +17,7 @@ except Exception:
     _HAS_FAISS = False
 
 # ---------- 配置 ----------
-TRAIN_JSON = "/mnt/data/train.json"   # 你上传的 train.json，本地路径
+TRAIN_JSON = "./data_preprocess/train.json"   # 本地路径
 MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"  # 示例编码器（可替换）
 EMB_DIM = 384  # 与模型输出维度一致（MiniLM v2 -> 384）
 INDEX_FILE = "relation_index.faiss" if _HAS_FAISS else "relation_index.ann"

@@ -1,6 +1,7 @@
 import mindnlp
 import os
 import sys
+import argparse
 from datasets import Dataset
 import pandas as pd
 from transformers import AutoTokenizer, AutoModelForCausalLM, DataCollatorForSeq2Seq, TrainingArguments, Trainer, GenerationConfig
@@ -9,7 +10,7 @@ from mindnlp.peft import LoraConfig, get_peft_model, TaskType
 from datasets import load_dataset
 from mindspore.communication import init, get_rank, get_group_size
 
-def train():
+def train(model_path, data_file, output_dir):
     # ================= 1. 分布式环境初始化 =================
     try:
         ms.set_context(mode=ms.PYNATIVE_MODE, device_target="Ascend")
@@ -23,9 +24,9 @@ def train():
         print("⚠️ 未检测到分布式环境，启动单卡模式")
 
     # ================= 2. 配置参数 =================
-    MODEL_PATH = "Qwen/Qwen2.5-7B-Instruct"
-    DATA_FILE = "./data_preprocess/train_data.jsonl"
-    OUTPUT_DIR = "./qwen2.5-7B_lora_output"
+    MODEL_PATH = model_path
+    DATA_FILE = data_file
+    OUTPUT_DIR = output_dir
     CACHE_DIR = "/cache/hf" 
     
     # ================= 3. 加载模型与Tokenizer =================
@@ -41,9 +42,9 @@ def train():
         MODEL_PATH,
         mirror='modelscope',
         cache_dir=CACHE_DIR,  
-        ms_dtype=ms.bfloat16,    # Ascend 910B 推荐使用 BF16
+        ms_dtype=ms.bfloat16,    
         trust_remote_code=True,
-        attn_implementation="eager" # 🌟 关键：强制关闭 FlashAttn，解决 bprop 报错
+        attn_implementation="eager" 
     )
 
     # ================= 4. LoRA 配置 =================
@@ -93,7 +94,7 @@ def train():
     # ================= 6. 训练参数 =================
     args = TrainingArguments(
         output_dir=OUTPUT_DIR,
-        per_device_train_batch_size=1,   # 14B 模型单卡 Batch 只能设 1
+        per_device_train_batch_size=1,  
         gradient_accumulation_steps=4,   # 梯度累积，等效 Batch Size = 8 * GPU数
         gradient_checkpointing=True,     # 必须开启
         
@@ -131,4 +132,11 @@ def train():
         print(f"✅ 训练完成！LoRA 权重已保存至 {OUTPUT_DIR}")
 
 if __name__ == "__main__":
-    train()
+    parser = argparse.ArgumentParser(description="Train Qwen2.5-7B model with LoRA.")
+    parser.add_argument("--model_path", type=str, default="Qwen/Qwen2.5-7B-Instruct", help="Path to the pre-trained model")
+    parser.add_argument("--data_file", type=str, default="./data_preprocess/train_data.jsonl", help="Path to the training data file")
+    parser.add_argument("--output_dir", type=str, default="./qwen2.5-7B_lora_output", help="Directory to save the output model")
+    
+    args = parser.parse_args()
+    
+    train(args.model_path, args.data_file, args.output_dir)
