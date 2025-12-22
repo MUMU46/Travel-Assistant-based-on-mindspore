@@ -5,7 +5,7 @@ import networkx as nx
 import logging
 import pickle
 import os
-from build_relation_router import RelationRouter as VectorRelationRouter
+# from build_relation_router import RelationRouter as VectorRelationRouter
 
 
 # 配置日志
@@ -50,19 +50,19 @@ class RelationRouter:
 
     def route(self, query: str):
         ents = self.extract_entities(query)
-        # rels = self.extract_relations(query)
-        vector_results = self.vector_router.route(query, topk=1)
-        if vector_results:
-            rels = [vector_results[0]["relation"]]
-        else:
-            rels = []
+        rels = self.extract_relations(query)
+        # vector_results = self.vector_router.route(query, topk=1)
+        # if vector_results:
+        #     rels = [vector_results[0]["relation"]]
+        # else:
+        #     rels = []
 
         if not ents:
             return {"mode": "no_entity", "entities": [], "relations": rels}
 
         if not rels:
-            # return {"mode": "entity_only", "entities": ents, "relations": []}
-            rels = self.router.extract_relations(query)
+            return {"mode": "entity_only", "entities": ents, "relations": []}
+            # rels = self.router.extract_relations(query)
 
         return {"mode": "entity_relation", "entities": ents, "relations": rels}
 
@@ -77,11 +77,11 @@ class KnowledgeGraphRAG:
         self.load_and_build_graph(knowledge_file_path)
 
         # 初始化 Router
-        # self.router = RelationRouter(
-        #     entity_list=list(self.entity_index),
-        #     relation_keywords=RELATION_KEYWORDS
-        # )
-        self.vector_router = VectorRelationRouter()
+        self.router = RelationRouter(
+            entity_list=list(self.entity_index),
+            relation_keywords=RELATION_KEYWORDS
+        )
+        # self.vector_router = VectorRelationRouter()
 
     def load_and_build_graph(self, file_path):
         if os.path.exists(GRAPH_CACHE_FILE):

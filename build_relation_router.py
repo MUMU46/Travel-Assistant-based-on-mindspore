@@ -9,12 +9,12 @@ import mindspore as ms
 from transformers import AutoTokenizer, AutoModel  # 注意不是 AutoModelForCausalLM
 
 # 向量索引：优先 Faiss，若无则降级到 Annoy
-try:
-    import faiss
-    _HAS_FAISS = True
-except Exception:
-    from annoy import AnnoyIndex
-    _HAS_FAISS = False
+# try:
+#     import faiss
+#     _HAS_FAISS = True
+# except Exception:
+#     from annoy import AnnoyIndex
+#     _HAS_FAISS = False
 
 # ---------- 配置 ----------
 TRAIN_JSON = "./data_preprocess/train.json"   # 本地路径
