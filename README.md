@@ -45,7 +45,7 @@ Windows (PowerShell) 激活虚拟环境:
    # input_file: 输入数据路径，默认为”./train.json”
    # output_file：预处理后数据保存路径，默认为”./train_data.jsonl”
    cd data_preprocess
-   python data_pre.py  --input_file xxx --output_fil xxx
+   python data_pre.py  --input_file xxx --output_file xxx
    ```
 
 2. LoRA 微调：运行 `train_qwen.py`（或项目内对应的训练脚本），将 权重文件保存到输出文件夹路径（示例`qwen2.5-7b_lora_output/`）。
