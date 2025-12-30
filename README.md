@@ -39,22 +39,32 @@ Windows (PowerShell) 激活虚拟环境:
 
 **快速开始**
 
-1. 数据准备：在 `data_preporcess/` 中放置或生成训练数据（示例文件 `train.json`、`train_data.jsonl`）。
-2. LoRA 微调：运行 `train_qwen.py`（或项目内对应的训练脚本），将 LoRA 适配器保存到 `qwen2.5-7b_lora_output/`。
+1. 数据准备：在 `data_preporcess/` 中放置或生成训练数据（示例文件 `train.json`）。
+
+   ```
+   # input_file: 输入数据路径，默认为”./train.json”
+   # output_file：预处理后数据保存路径，默认为”./train_data.jsonl”
+   cd data_preprocess
+   python data_pre.py  --input_file xxx --output_fil xxx
+   ```
+
+2. LoRA 微调：运行 `train_qwen.py`（或项目内对应的训练脚本），将 权重文件保存到输出文件夹路径（示例`qwen2.5-7b_lora_output/`）。
    - 示例：
    ```
-   python train_qwen.py 
+   #model_path：模型名称或预训练权重路径
+   # data_file：标注数据路径
+   # output_dir：微调后LoRA Adapter权重保存路径
+   python train_qwen.py --model_path xxx --data_file xxx --output_dir xxx
    ```
-3. RAG 集成：运行`main.py` 启动检索 + 生成对话流程，加载 LoRA 适配器与检索索引。
 
-**LoRA + 推理（伪代码）**
+3. RAG 集成：运行`main.py` 启动检索 + 生成对话流程，加载 LoRA权重与知识库。
 
-```
-# 加载基础模型 -> 注入 LoRA 权重 -> 用于生成
-from transformers import AutoModel
-# load model
-# load lora adapter from `qwen2.5-7b_lora_output/adapter_model.safetensors`
-```
+   ```
+   #model_path : 使用的模型名路径
+   #lora_path：lora微调权重文件路径
+   #knowledge_file：知识库文件路径
+   python main.py --model_path xxx --lora_path xxx --knowledge_file xxx
+   ```
 
 ##### 运行效果
 
@@ -62,7 +72,9 @@ from transformers import AutoModel
 
 ![image-20251202202748100](https://s2.loli.net/2025/12/11/bTY3iCFZ5ApBNft.png)
 
-**注意事项**
-- MindSpore 与部分 PyPI 包版本在不同平台上兼容性不同，若遇到安装问题，请优先参考 MindSpore 官方安装页。
+![image-20251230141839676](https://s2.loli.net/2025/12/30/btDIB74HjMxREAh.png)
 
+**注意事项**
+
+- MindSpore 与部分 PyPI 包版本在不同平台上兼容性不同，若遇到安装问题，请优先参考 MindSpore 官方安装页。
 
