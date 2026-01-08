@@ -8,34 +8,25 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, DataCollatorForSeq
 import mindspore as ms
 from mindnlp.peft import LoraConfig, get_peft_model, TaskType
 from datasets import load_dataset
-from mindspore.communication import init, get_rank, get_group_size
+
 
 def train(model_path, data_file, output_dir):
-    # ================= 1. 分布式环境初始化 =================
-    try:
-        ms.set_context(mode=ms.PYNATIVE_MODE, device_target="Ascend")
-        init()
-        rank_id = get_rank()
-        rank_size = get_group_size()
-        print(f"🚀 启动分布式训练: Rank {rank_id}/{rank_size}")
-    except:
-        rank_id = 0
-        rank_size = 1
-        print("⚠️ 未检测到分布式环境，启动单卡模式")
-
-    # ================= 2. 配置参数 =================
+   
+    rank_id = 0
+   
+    # =================  配置参数 =================
     MODEL_PATH = model_path
     DATA_FILE = data_file
     OUTPUT_DIR = output_dir
     CACHE_DIR = "/cache/hf" 
     
-    # ================= 3. 加载模型与Tokenizer =================
+    # =================  加载模型与Tokenizer =================
     print("正在加载 Tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, mirror='modelscope', trust_remote_code=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-        # ================= 4. 模型加载（4bit + BF16） =================
+        # =================  模型加载（4bit + BF16） =================
    
     print("正在加载模型 (BF16)...")
     model = AutoModelForCausalLM.from_pretrained(
@@ -47,7 +38,7 @@ def train(model_path, data_file, output_dir):
         attn_implementation="eager" 
     )
 
-    # ================= 4. LoRA 配置 =================
+    # =================  LoRA 配置 =================
     peft_config = LoraConfig(
         task_type=TaskType.CAUSAL_LM,
         inference_mode=False,
@@ -65,7 +56,7 @@ def train(model_path, data_file, output_dir):
     if rank_id == 0:
         model.print_trainable_parameters()
 
-    # ================= 5. 数据处理 =================
+    # ================= 数据处理 =================
     # 加载数据集
     dataset = load_dataset('json', data_files=DATA_FILE, split='train')
 
@@ -91,7 +82,7 @@ def train(model_path, data_file, output_dir):
 
     train_dataset = dataset.map(process_func, batched=True)
 
-    # ================= 6. 训练参数 =================
+    # =================  训练参数 =================
     args = TrainingArguments(
         output_dir=OUTPUT_DIR,
         per_device_train_batch_size=1,  
@@ -116,7 +107,7 @@ def train(model_path, data_file, output_dir):
     )
     
 
-    # ================= 7. 开始训练 =================
+    # =================  开始训练 =================
     trainer = Trainer(
         model=model,
         args=args,
